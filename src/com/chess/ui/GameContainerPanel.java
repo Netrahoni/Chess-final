@@ -169,6 +169,11 @@ public class GameContainerPanel extends JPanel {
         JOptionPane.showMessageDialog(this, player + "'s time is running low!", "Time Alert", JOptionPane.WARNING_MESSAGE);
     }
 
+    // === NEW METHOD ADDED TO FIX VISIBILITY ERROR ===
+    public void handleToggleFullScreen() {
+        chessGame.toggleFullScreen();
+    }
+
     public void handlePauseResume() {
         // ... (Original content unchanged) ...
         if (gameLogic == null) return;
@@ -308,6 +313,8 @@ public class GameContainerPanel extends JPanel {
         String winner = loser.equals("White") ? "Black" : "White";
         chessGame.handleGameOver(winner + " wins on time!");
     }
+
+
 
     private void updateTimerLabel(TimerPanel panel, int totalSeconds) {
         // ... (Original content unchanged) ...

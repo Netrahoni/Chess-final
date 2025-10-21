@@ -3,9 +3,8 @@ package com.chess;
 import com.chess.logic.GameLogic;
 import com.chess.ui.GameContainerPanel;
 import com.chess.ui.GameSetupPanel;
-
-import javax.swing.*;
 import java.awt.*;
+import javax.swing.*;
 
 public class ChessGame extends JFrame {
 
@@ -103,5 +102,8 @@ public class ChessGame extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(ChessGame::new);
+    }
+    public GameContainerPanel getGameContainerPanel() {
+        return gameContainerPanel;
     }
 }

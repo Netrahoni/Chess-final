@@ -2,12 +2,11 @@ package com.chess.logic;
 
 import com.chess.ChessGame;
 import com.chess.model.*;
-
-import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 import java.util.stream.Collectors;
+import javax.swing.*;
 
 public class GameLogic {
     public final Piece[][] board;
@@ -165,7 +164,7 @@ public class GameLogic {
 
         currentPlayer = (currentPlayer == PieceColor.WHITE) ? PieceColor.BLACK : PieceColor.WHITE;
 
-        // === ADDED: UI Update Block ===
+        // === MODIFIED: UI Update Block ===
         final PieceColor newPlayer = currentPlayer;
         SwingUtilities.invokeLater(() -> {
             // Update history and captured pieces
@@ -190,8 +189,12 @@ public class GameLogic {
                 chessGame.getGameContainerPanel().stopWhiteTimer();
                 chessGame.getGameContainerPanel().startBlackTimer();
             }
+
+            // === FIX FOR UNDO BUTTON ===
+            // Re-evaluate the state of the action buttons (mainly for the Undo button)
+            chessGame.getGameContainerPanel().getInfoPanel().updateActionButtonsState(true);
         });
-        // === End of Added Block ===
+        // === End of Modified Block ===
 
         if (isCheckmate(currentPlayer)) {
             isGameOver = true;

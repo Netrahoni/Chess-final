@@ -2,13 +2,12 @@ package com.chess.ui;
 
 import com.chess.model.Piece;
 import com.chess.model.PieceColor;
-
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 
 public class InfoPanel extends JPanel {
     private final JLabel turnLabel;
@@ -47,7 +46,7 @@ public class InfoPanel extends JPanel {
         displayPanel.add(new JLabel("Board Theme:"));
         displayPanel.add(themeDropdown);
         displayPanel.add(new StyledButton("Flip Board", e -> gameContainerPanel.flipBoardLayout()));
-        displayPanel.add(new StyledButton("Full Screen", e -> gameContainerPanel.chessGame.toggleFullScreen()));
+        displayPanel.add(new StyledButton("Full Screen", e -> gameContainerPanel.handleToggleFullScreen()));
         add(displayPanel);
         add(Box.createRigidArea(new Dimension(0, 20)));
 

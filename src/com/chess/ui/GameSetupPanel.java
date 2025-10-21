@@ -1,16 +1,15 @@
 package com.chess.ui;
 
 import com.chess.ChessGame;
-
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.plaf.basic.BasicComboBoxUI;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Map;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.plaf.basic.BasicComboBoxUI;
 
 public class GameSetupPanel extends JPanel {
     private CustomToggleButton bulletButton;
@@ -18,8 +17,18 @@ public class GameSetupPanel extends JPanel {
     private CustomToggleButton rapidButton;
     private final ChessGame chessGame;
 
-    public GameSetupPanel(ChessGame chessGame) {
-        this.chessGame = chessGame;
+    // 1. The constructor parameter is renamed to 'game'
+    public GameSetupPanel(ChessGame game) {
+        this.chessGame = game;
+        // 2. The constructor now only calls the new private init method
+        initComponents();
+    }
+
+    /**
+     * Initializes all UI components for the setup panel.
+     * This fixes the "overridable method call in constructor" warning.
+     */
+    private void initComponents() {
         setLayout(new GridBagLayout());
         setBackground(new Color(30, 30, 30));
         setPreferredSize(new Dimension(800, 800));
@@ -147,9 +156,11 @@ public class GameSetupPanel extends JPanel {
         startGameButton.setFocusPainted(false);
         startGameButton.setBorder(new EmptyBorder(15, 40, 15, 40));
         startGameButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        
+        // 3. The lambda now correctly uses 'this.chessGame'
         startGameButton.addActionListener(e -> {
             if (aiButton.isSelected()) {
-                JOptionPane.showMessageDialog(chessGame,
+                JOptionPane.showMessageDialog(this.chessGame,
                         "This Feature will be Available soon...",
                         "Feature Not Available",
                         JOptionPane.INFORMATION_MESSAGE);
@@ -169,7 +180,7 @@ public class GameSetupPanel extends JPanel {
                 }
 
                 if (selectedTime != null) {
-                    chessGame.startGame(selectedTime, gameType, mode, level);
+                    this.chessGame.startGame(selectedTime, gameType, mode, level);
                 }
             }
         });
@@ -183,7 +194,7 @@ public class GameSetupPanel extends JPanel {
         return label;
     }
 
-    private class CustomToggleButton extends JToggleButton {
+    private final class CustomToggleButton extends JToggleButton {
         private final Color normalColor = new Color(60, 60, 60);
         private final Color hoverColor = new Color(80, 80, 80);
         private final Color selectedColor = new Color(255, 200, 0);
