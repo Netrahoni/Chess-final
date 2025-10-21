@@ -2,11 +2,12 @@ package com.chess.ui;
 
 import com.chess.ChessGame;
 import com.chess.logic.GameLogic;
+import com.chess.model.MoveRecord; // Import MoveRecord
+import com.chess.model.Piece; // Import Piece
 import com.chess.model.PieceColor;
-
+import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import java.awt.*;
 
 public class GameContainerPanel extends JPanel {
     private final ChessboardPanel chessboardPanel;
@@ -21,7 +22,7 @@ public class GameContainerPanel extends JPanel {
     private int whiteTimeSeconds, blackTimeSeconds;
     private int alertThreshold;
     private boolean whiteLowTimeAlerted, blackLowTimeAlerted;
-    private GameLogic gameLogic;
+    public GameLogic gameLogic; // Made public for access from InfoPanel
     private final ChessGame chessGame;
 
 
@@ -67,6 +68,7 @@ public class GameContainerPanel extends JPanel {
     }
 
     public void flipBoardLayout() {
+        // ... (Original content unchanged) ...
         Component north = ((BorderLayout) boardContainer.getLayout()).getLayoutComponent(BorderLayout.NORTH);
         Component south = ((BorderLayout) boardContainer.getLayout()).getLayoutComponent(BorderLayout.SOUTH);
         boardContainer.remove(north);
@@ -83,6 +85,7 @@ public class GameContainerPanel extends JPanel {
     }
 
     public void initializeGame(GameLogic gameLogic, String timeControl, String gameType, String gameMode, String aiLevel) {
+        // ... (Original content unchanged) ...
         this.gameLogic = gameLogic;
         chessboardPanel.setGameLogic(gameLogic);
         infoPanel.updateGameInfo(gameMode, aiLevel);
@@ -114,6 +117,7 @@ public class GameContainerPanel extends JPanel {
     }
 
     public void reset() {
+        // ... (Original content unchanged) ...
         stopTimers();
         this.gameLogic = null;
         whiteTimeSeconds = 0;
@@ -134,10 +138,12 @@ public class GameContainerPanel extends JPanel {
     }
 
     public void updateStatus(String text) {
+        // ... (Original content unchanged) ...
         statusLabel.setText(text);
     }
 
     private void setupTimers() {
+        // ... (Original content unchanged) ...
         whiteTimer = new Timer(1000, e -> {
             whiteTimeSeconds--;
             updateTimerLabel(whitePlayerProfile.getTimerPanel(), whiteTimeSeconds);
@@ -159,10 +165,12 @@ public class GameContainerPanel extends JPanel {
     }
 
     private void showLowTimeAlert(String player) {
+        // ... (Original content unchanged) ...
         JOptionPane.showMessageDialog(this, player + "'s time is running low!", "Time Alert", JOptionPane.WARNING_MESSAGE);
     }
 
     public void handlePauseResume() {
+        // ... (Original content unchanged) ...
         if (gameLogic == null) return;
         gameLogic.isPaused = !gameLogic.isPaused;
         infoPanel.togglePauseButtonText(gameLogic.isPaused);
@@ -183,6 +191,7 @@ public class GameContainerPanel extends JPanel {
     }
 
     public void handleResignation() {
+        // ... (Original content unchanged) ...
         if (gameLogic == null || gameLogic.isGameOver) return;
         String resigningPlayer = gameLogic.currentPlayer == PieceColor.WHITE ? "White" : "Black";
         int choice = JOptionPane.showConfirmDialog(this,
@@ -197,6 +206,7 @@ public class GameContainerPanel extends JPanel {
     }
 
     public void handleDrawOffer() {
+        // ... (Original content unchanged) ...
         if (gameLogic == null || gameLogic.isGameOver) return;
         String offeringPlayer = gameLogic.currentPlayer == PieceColor.WHITE ? "White" : "Black";
         String opponent = offeringPlayer.equals("White") ? "Black" : "White";
@@ -224,7 +234,37 @@ public class GameContainerPanel extends JPanel {
                 JOptionPane.YES_NO_OPTION);
 
         if (choice == JOptionPane.YES_OPTION) {
-            gameLogic.undoLastMove();
+            MoveRecord undoneRecord = gameLogic.undoLastMove(); // Get the undone record
+
+            // === ADDED: UI Update Block for Undo ===
+            if (undoneRecord != null) {
+                // Repaint the board
+                chessboardPanel.repaint();
+
+                // Update history panel
+                historyPanel.removeLastMove(undoneRecord.pgn());
+
+                // Update captured pieces panel
+                if (undoneRecord.capturedPiece() != null) {
+                    // Find the color of the player who made the move
+                    Piece movedPiece = gameLogic.board[undoneRecord.move().startRow()][undoneRecord.move().startCol()];
+                    if (movedPiece != null) {
+                        infoPanel.removeLastCapturedPiece(movedPiece.color());
+                    }
+                }
+
+                // Update status label and timers
+                updateStatus(gameLogic.currentPlayer + "'s Turn");
+                if (gameLogic.currentPlayer == PieceColor.WHITE) {
+                    stopBlackTimer();
+                    startWhiteTimer();
+                } else {
+                    stopWhiteTimer();
+                    startBlackTimer();
+                }
+            }
+            // === End of Added Block ===
+
         } else {
             updateStatus("Undo request declined. " + requestingPlayer + "'s turn.");
         }
@@ -232,31 +272,37 @@ public class GameContainerPanel extends JPanel {
 
 
     public void startWhiteTimer() {
+        // ... (Original content unchanged) ...
         if (whiteTimer != null) whiteTimer.start();
         whitePlayerProfile.getTimerPanel().setActive(true);
         blackPlayerProfile.getTimerPanel().setActive(false);
     }
 
     public void stopWhiteTimer() {
+        // ... (Original content unchanged) ...
         if (whiteTimer != null) whiteTimer.stop();
     }
 
     public void startBlackTimer() {
+        // ... (Original content unchanged) ...
         if (blackTimer != null) blackTimer.start();
         blackPlayerProfile.getTimerPanel().setActive(true);
         whitePlayerProfile.getTimerPanel().setActive(false);
     }
 
     public void stopBlackTimer() {
+        // ... (Original content unchanged) ...
         if (blackTimer != null) blackTimer.stop();
     }
 
     public void stopTimers() {
+        // ... (Original content unchanged) ...
         stopWhiteTimer();
         stopBlackTimer();
     }
 
     private void timeUp(String loser) {
+        // ... (Original content unchanged) ...
         stopTimers();
         if (gameLogic != null) gameLogic.isGameOver = true;
         String winner = loser.equals("White") ? "Black" : "White";
@@ -264,18 +310,22 @@ public class GameContainerPanel extends JPanel {
     }
 
     private void updateTimerLabel(TimerPanel panel, int totalSeconds) {
+        // ... (Original content unchanged) ...
         panel.setTime(totalSeconds);
     }
 
     public InfoPanel getInfoPanel() {
+        // ... (Original content unchanged) ...
         return infoPanel;
     }
 
     public HistoryPanel getHistoryPanel() {
+        // ... (Original content unchanged) ...
         return historyPanel;
     }
 
     public ChessboardPanel getChessboardPanel() {
+        // ... (Original content unchanged) ...
         return chessboardPanel;
     }
 }

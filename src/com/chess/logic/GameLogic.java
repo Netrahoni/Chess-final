@@ -30,8 +30,8 @@ public class GameLogic {
         isGameOver = false;
     }
 
-    public void undoLastMove() {
-        if (moveHistory.isEmpty()) return;
+    public MoveRecord undoLastMove() {
+        if (moveHistory.isEmpty()) return null;
 
         MoveRecord lastRecord = moveHistory.pop();
         Move lastMove = lastRecord.move();
@@ -41,18 +41,14 @@ public class GameLogic {
         board[lastMove.startRow()][lastMove.startCol()] = movedPiece;
         board[lastMove.endRow()][lastMove.endCol()] = capturedPiece;
 
-        // This part needs to be handled in the UI
-        // if (capturedPiece != null) {
-        //     chessGame.getGameContainerPanel().getInfoPanel().removeLastCapturedPiece(movedPiece.color());
-        // }
-        // chessGame.getGameContainerPanel().getHistoryPanel().removeLastMove(lastRecord.pgn());
-
         switchPlayerBack();
-        // chessGame.getGameContainerPanel().getChessboardPanel().repaint();
+        
+        return lastRecord;
     }
 
 
     private void setupInitialBoard() {
+        // ... (Original content unchanged) ...
         board[0][0] = new Piece(PieceType.ROOK, PieceColor.BLACK);
         board[0][1] = new Piece(PieceType.KNIGHT, PieceColor.BLACK);
         board[0][2] = new Piece(PieceType.BISHOP, PieceColor.BLACK);
@@ -92,9 +88,9 @@ public class GameLogic {
             boolean isValidMove = validMoves.stream().anyMatch(m -> m.equals(intendedMove));
 
             if (isValidMove) {
-                movePiece(intendedMove);
+                MoveRecord record = movePiece(intendedMove); // Get the record
                 checkForPawnPromotion(row, col);
-                switchPlayer();
+                switchPlayer(record); // Pass the record
             }
 
             selectedPiece = null;
@@ -102,29 +98,22 @@ public class GameLogic {
         }
     }
 
-    public void movePiece(Move move) {
+    public MoveRecord movePiece(Move move) {
         Piece movingPiece = board[move.startRow()][move.startCol()];
         Piece capturedPiece = board[move.endRow()][move.endCol()];
 
         String pgn = convertMoveToPgn(move, movingPiece, capturedPiece != null);
-        moveHistory.push(new MoveRecord(move, capturedPiece, pgn));
-
-
-        boolean isCapture = capturedPiece != null;
-
-        // UI update should be called from the main UI thread
-        // if (isCapture) {
-        //     PieceColor capturingColor = movingPiece.color();
-        //     chessGame.getGameContainerPanel().getInfoPanel().addCapturedPiece(capturedPiece, capturingColor);
-        // }
+        MoveRecord record = new MoveRecord(move, capturedPiece, pgn);
+        moveHistory.push(record);
 
         board[move.endRow()][move.endCol()] = movingPiece;
         board[move.startRow()][move.startCol()] = null;
 
-        // chessGame.getGameContainerPanel().getHistoryPanel().addMove(pgn);
+        return record;
     }
 
     public String convertMoveToPgn(Move move, Piece movedPiece, boolean isCapture) {
+        // ... (Original content unchanged) ...
         StringBuilder sb = new StringBuilder();
         if (movedPiece.color() == PieceColor.WHITE) {
             sb.append(moveCount).append(". ");
@@ -139,6 +128,7 @@ public class GameLogic {
     }
 
     private String getPieceChar(PieceType type) {
+        // ... (Original content unchanged) ...
         return switch (type) {
             case KNIGHT -> "N";
             case BISHOP -> "B";
@@ -150,6 +140,7 @@ public class GameLogic {
     }
 
     private String getSquareName(int row, int col) {
+        // ... (Original content unchanged) ...
         char file = (char) ('a' + col);
         int rank = 8 - row;
         return "" + file + rank;
@@ -163,13 +154,44 @@ public class GameLogic {
         currentPlayer = (currentPlayer == PieceColor.WHITE) ? PieceColor.BLACK : PieceColor.WHITE;
     }
 
-
     public void switchPlayer() {
+        switchPlayer(null);
+    }
+
+    public void switchPlayer(MoveRecord record) {
         if (currentPlayer == PieceColor.BLACK) {
             moveCount++;
         }
 
         currentPlayer = (currentPlayer == PieceColor.WHITE) ? PieceColor.BLACK : PieceColor.WHITE;
+
+        // === ADDED: UI Update Block ===
+        final PieceColor newPlayer = currentPlayer;
+        SwingUtilities.invokeLater(() -> {
+            // Update history and captured pieces
+            if (record != null) {
+                chessGame.getGameContainerPanel().getHistoryPanel().addMove(record.pgn());
+                if (record.capturedPiece() != null) {
+                    // Find the piece that just moved to get its color
+                    Piece movingPiece = board[record.move().endRow()][record.move().endCol()];
+                    if (movingPiece != null) {
+                        chessGame.getGameContainerPanel().getInfoPanel().addCapturedPiece(
+                                record.capturedPiece(), movingPiece.color());
+                    }
+                }
+            }
+
+            // Update status label and timers
+            chessGame.getGameContainerPanel().updateStatus(newPlayer + "'s Turn");
+            if (newPlayer == PieceColor.WHITE) {
+                chessGame.getGameContainerPanel().stopBlackTimer();
+                chessGame.getGameContainerPanel().startWhiteTimer();
+            } else {
+                chessGame.getGameContainerPanel().stopWhiteTimer();
+                chessGame.getGameContainerPanel().startBlackTimer();
+            }
+        });
+        // === End of Added Block ===
 
         if (isCheckmate(currentPlayer)) {
             isGameOver = true;
@@ -182,6 +204,7 @@ public class GameLogic {
     }
 
     private void checkForPawnPromotion(int row, int col) {
+        // ... (Original content unchanged) ...
         Piece piece = board[row][col];
         if (piece != null && piece.type() == PieceType.PAWN) {
             if ((piece.color() == PieceColor.WHITE && row == 0) || (piece.color() == PieceColor.BLACK && row == 7)) {
@@ -191,6 +214,7 @@ public class GameLogic {
     }
 
     private void promotePawn(int row, int col) {
+        // ... (Original content unchanged) ...
         PieceColor color = board[row][col].color();
         Object[] options = {"Queen", "Rook", "Bishop", "Knight"};
         String choice = (String) JOptionPane.showInputDialog(
@@ -210,6 +234,7 @@ public class GameLogic {
     }
 
     public List<Move> calculateValidMoves(int row, int col) {
+        // ... (Original content unchanged) ...
         List<Move> moves = new ArrayList<>();
         Piece piece = board[row][col];
         if (piece == null) return moves;
@@ -229,6 +254,7 @@ public class GameLogic {
     }
 
     private void addPawnMoves(List<Move> moves, Piece piece, int r, int c) {
+        // ... (Original content unchanged) ...
         int direction = (piece.color() == PieceColor.WHITE) ? -1 : 1;
         int startRow = (piece.color() == PieceColor.WHITE) ? 6 : 1;
 
@@ -247,6 +273,7 @@ public class GameLogic {
     }
 
     private void addSlidingMoves(List<Move> moves, Piece piece, int r, int c, int[][] directions) {
+        // ... (Original content unchanged) ...
         for (int[] dir : directions) {
             for (int i = 1; i < 8; i++) {
                 int newRow = r + i * dir[0];
@@ -265,6 +292,7 @@ public class GameLogic {
     }
 
     private void addKnightMoves(List<Move> moves, Piece piece, int r, int c) {
+        // ... (Original content unchanged) ...
         int[][] knightMoves = {{1, 2}, {1, -2}, {-1, 2}, {-1, -2}, {2, 1}, {2, -1}, {-2, 1}, {-2, -1}};
         for (int[] move : knightMoves) {
             int newRow = r + move[0];
@@ -276,6 +304,7 @@ public class GameLogic {
     }
 
     private void addKingMoves(List<Move> moves, Piece piece, int r, int c) {
+        // ... (Original content unchanged) ...
         for (int dr = -1; dr <= 1; dr++) {
             for (int dc = -1; dc <= 1; dc++) {
                 if (dr == 0 && dc == 0) continue;
@@ -289,10 +318,12 @@ public class GameLogic {
     }
 
     private boolean isValid(int r, int c) {
+        // ... (Original content unchanged) ...
         return r >= 0 && r < 8 && c >= 0 && c < 8;
     }
 
     public boolean isKingInCheck(PieceColor kingColor) {
+        // ... (Original content unchanged) ...
         int kingRow = -1, kingCol = -1;
         for (int r = 0; r < 8; r++) {
             for (int c = 0; c < 8; c++) {
@@ -322,6 +353,7 @@ public class GameLogic {
     }
 
     private boolean moveLeavesKingInCheck(Move move, PieceColor playerColor) {
+        // ... (Original content unchanged) ...
         Piece temp = board[move.endRow()][move.endCol()];
         board[move.endRow()][move.endCol()] = board[move.startRow()][move.startCol()];
         board[move.startRow()][move.startCol()] = null;
@@ -335,6 +367,7 @@ public class GameLogic {
     }
 
     private List<Move> calculateRawMoves(int row, int col) {
+        // ... (Original content unchanged) ...
         List<Move> moves = new ArrayList<>();
         Piece piece = board[row][col];
         if (piece == null) return moves;
@@ -351,6 +384,7 @@ public class GameLogic {
     }
 
     public boolean hasAnyLegalMoves(PieceColor playerColor) {
+        // ... (Original content unchanged) ...
         for (int r = 0; r < 8; r++) {
             for (int c = 0; c < 8; c++) {
                 if (board[r][c] != null && board[r][c].color() == playerColor) {
@@ -364,10 +398,12 @@ public class GameLogic {
     }
 
     public boolean isCheckmate(PieceColor playerColor) {
+        // ... (Original content unchanged) ...
         return isKingInCheck(playerColor) && !hasAnyLegalMoves(playerColor);
     }
 
     public boolean isStalemate(PieceColor playerColor) {
+        // ... (Original content unchanged) ...
         return !isKingInCheck(playerColor) && !hasAnyLegalMoves(playerColor);
     }
 }
